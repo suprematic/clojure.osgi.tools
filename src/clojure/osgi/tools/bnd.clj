@@ -42,11 +42,21 @@
 
 		bundles))
 
+
+(defn- collect-files [dirpath pattern]
+  (filter #(re-matches pattern (.getName %))
+               (file-seq (java.io.File. dirpath))))
+
+(defn- collect-feature-files [dirpath]
+	(collect-files dirpath #"feature\.xml"))
+
 (defn create-libs-from-pde-features
 	"Creates a BND lib property files based on
 	the given directory with PDE features
 	in the given directory for BND libs."
 	[features-dir bnd-libs-dir]
 
-	;TODO
-	nil)
+	(.mkdirs (java.io.File. bnd-libs-dir))
+
+	(let [feature-files (collect-feature-files features-dir)]
+		(doall (map #(create-lib-from-pde-feature % bnd-libs-dir) feature-files))))
