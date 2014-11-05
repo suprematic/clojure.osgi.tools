@@ -13,21 +13,36 @@
 (defn- attrs-of-tag [tag content]
 	(map :attrs (filter #(= tag (:tag %)) content)))
 
-(defn- bnd-lib-id [feature-id]
-	(str "feature_" feature-id))
+(defn- bnd-lib-id [id]
+	(str "feature_" id))
 
-(defn- to-bnd-entry [id version]
-	(str id ";version=" version))
+(defn- bnd-lib-filename [id version]
+	(str (bnd-lib-id id) "-" (trim-build-segment version) ".lib"))
+
+(defn- bnd-instruction [key value]
+	(if (nil? value)
+		""
+		(str ";" key "=" value)))
+
+(defn- to-bnd-entry [id version os ws arch nl]
+	(-> id		
+		(str (bnd-instruction "version" version))
+		(str (bnd-instruction "os" os))
+		(str (bnd-instruction "ws" ws))
+		(str (bnd-instruction "arch" arch))
+		(str (bnd-instruction "nl" nl))))
 
 (defn- to-bnd-bundle-entry [plugin]
-	(let [id (:id plugin)
-		  version (trim-build-segment (:version plugin))]
-		  (to-bnd-entry id version)))
+	(let [{:keys [id version os ws arch nl]} plugin
+		  lib-id id
+		  lib-version (trim-build-segment version)]
+		  (to-bnd-entry lib-id lib-version os ws arch nl)))
 
 (defn- to-bnd-lib-entry [feature]
-	(let [id (bnd-lib-id (:id feature))
-		  version (trim-build-segment (:version feature))]
-		  (to-bnd-entry id version)))
+	(let [{:keys [id version os ws arch nl]} feature
+			lib-id (bnd-lib-id id)
+			lib-version (trim-build-segment version)]
+		  (to-bnd-entry lib-id lib-version os ws arch nl)))
 
 (defn- write-lib-file! [file feature-id feature-version entries]
 	(with-open [writer (io/writer file)]
@@ -56,7 +71,7 @@
 		plugins (attrs-of-tag :plugin content)
 
 		bnd-lib-id (bnd-lib-id id)
-		out-filename (str bnd-lib-id "-" (trim-build-segment version) ".lib")
+		out-filename (bnd-lib-filename id version)
 		out-file (java.io.File. (str out-dir "/" bnd-lib-id "/" out-filename))
 
 		libs (map to-bnd-lib-entry includes)
