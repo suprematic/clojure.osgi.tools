@@ -53,6 +53,18 @@
 		(.write writer "############################################################\n")
 		(doall (map #(.write writer (str % "\n")) entries))))
 
+(defn- capability-entry [value]
+	(if (nil? value)
+		""
+		(str "-" value)))
+
+(defn- capabilities-key [{:keys [os ws arch nl]}]
+	(-> ""
+		(str (capability-entry os))
+		(str (capability-entry ws))
+		(str (capability-entry arch))
+		(str (capability-entry nl))))
+
 (defn create-lib-from-pde-feature
 	"Creates a BND property file 
 	based on the given PDE feature.xml file
@@ -73,6 +85,10 @@
 		bnd-lib-id (bnd-lib-id id)
 		out-filename (bnd-lib-filename id version)
 		out-file (java.io.File. (str out-dir "/" bnd-lib-id "/" out-filename))
+
+
+		grouped-includes (group-by capabilities-key includes)
+		grouped-plugins (group-by capabilities-key plugins)
 
 		libs (map to-bnd-lib-entry includes)
 		bundles (map to-bnd-bundle-entry plugins)
