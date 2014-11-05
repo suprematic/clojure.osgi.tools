@@ -5,15 +5,20 @@ A Clojure library providing utilities for working with miscellaneous OSGi tools 
 ## Usage
 
 ### Generate BND lib property files out of Eclipse features
+Recursively walks through the given input and generates the BND lib files into the given output directory:
+* takes care of feature.xml files and jared features
+* output format is a BND cnf/lib directory structure
+* the libs are prefixed with "feature_" and preserve original Eclipse feature id and version
+* bundles with restricted os/ws/arch/nl capabilities are extracted into a separate BND lib
 
 From REPL:
 ```
-=> (clojure.osgi.tools.bnd/create-libs-from-pde-features "/tmp/input-dir" "/tmp/ouput-dir")
+=> (clojure.osgi.tools.bnd/create-libs-from-pde-features "/tmp/eclipse/R-3.8.2/features" "/tmp/bnd-libs-R.3.8.2")
 ```
 
 From command line:
 ```
-lein run -m clojure.osgi.tools.bnd/create-libs-from-pde-features "/tmp/input-dir" "/tmp/output-dir"
+lein run -m clojure.osgi.tools.bnd/create-libs-from-pde-features /tmp/eclipse/R-3.8.2/features /tmp/bnd-libs-R.3.8.2
 ```
 
 ## License
