@@ -50,12 +50,16 @@
 		includes (attrs-of-tag :includes content)
 		plugins (attrs-of-tag :plugin content)
 
-		out-filename (str (bnd-lib-id id) "-" (trim-build-segment version) ".lib")
-		out-file (str out-dir "/" out-filename)
+		bnd-lib-id (bnd-lib-id id)
+		out-filename (str bnd-lib-id "-" (trim-build-segment version) ".lib")
+		out-file (java.io.File. (str out-dir "/" bnd-lib-id "/" out-filename))
 
 		libs (map to-bnd-lib-entry includes)
 		bundles (map to-bnd-bundle-entry plugins)
 		entries (concat libs bundles)]
+
+		(.mkdirs (.getParentFile out-file))
+
 		(write-lib-file! out-file id version entries)
 		out-file))
 
@@ -72,8 +76,6 @@
 	the given directory with PDE features
 	in the given directory for BND libs."
 	[features-dir bnd-libs-dir]
-
-	(.mkdirs (java.io.File. bnd-libs-dir))
 
 	(let [feature-files (collect-feature-files features-dir)]
 		(doall (map #(create-lib-from-pde-feature % bnd-libs-dir) feature-files))))
