@@ -31,7 +31,6 @@
     (log/info "Processing the default sources")
     (doall (map #(create-bnd-libs output-root-dir %) local-sources)))
   ([output-root-dir {:keys [dir id]}]
-    ;TODO rather use desctructuring
     (let [dir-out (str output-root-dir "/" id)]
           (log/info "Processing" id "into" dir-out)
           (tools/create-libs-from-pde-features dir dir-out))))
