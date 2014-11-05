@@ -1,5 +1,6 @@
 (ns clojure.osgi.tools.bnd
 	(require 
+		[clojure.tools.logging :as log]
 		[clojure.java.io :as io]
 		[clojure.xml :as xml]))
 
@@ -42,6 +43,7 @@
 	based on the given PDE feature.xml file
 	in the given directory."
 	[feature-xml out-dir]
+	(log/debug "parsing" feature-xml)
 	(let [
 		xml (xml/parse feature-xml)
 		
