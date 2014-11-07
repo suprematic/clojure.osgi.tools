@@ -85,18 +85,20 @@
 		grouped-includes (group-by capabilities-key includes)
 		grouped-plugins (group-by capabilities-key plugins)
 
-		;all capabilities
-		capabilities (concat (keys grouped-plugins) (keys grouped-includes))
+		;contributed capabilities
+		capabilities-contrib (concat (keys grouped-plugins) (keys grouped-includes))
+		;capabilities to process: artificially include empties to get the file generated
+		capabilities (if (empty? capabilities-contrib) [""] capabilities-contrib)
 
 		;BND lib entries (rows), grouped by capability-key
 		grouped-entries (reduce 
 			#(assoc %1 %2 (concat 
 				(map to-bnd-lib-entry (get grouped-includes %2))
-				(map to-bnd-bundle-entry (get grouped-plugins %2)))) 
+				(map to-bnd-bundle-entry (get grouped-plugins %2))))
 			{} 
 			capabilities)]
 
-		(map #(let [
+			(map #(let [
 				entries (get grouped-entries %)
 				bnd-lib-id (bnd-lib-id id %)
 				out-filename (bnd-lib-filename id version %)
