@@ -13,11 +13,11 @@
 (defn- attrs-of-tag [tag content]
 	(map :attrs (filter #(= tag (:tag %)) content)))
 
-(defn- bnd-lib-id [id]
-	(str "feature_" id))
+(defn- bnd-lib-id [id capability-key]
+	(str "feature_" id capability-key))
 
-(defn- bnd-lib-filename [id version]
-	(str (bnd-lib-id id) "-" (trim-build-segment version) ".lib"))
+(defn- bnd-lib-filename [id version capability-key]
+	(str (bnd-lib-id id capability-key) "-" (trim-build-segment version) ".lib"))
 
 (defn- bnd-instruction [key value]
 	(if (nil? value)
@@ -40,7 +40,7 @@
 
 (defn- to-bnd-lib-entry [feature]
 	(let [{:keys [id version os ws arch nl]} feature
-			lib-id (bnd-lib-id id)
+			lib-id (bnd-lib-id id "") ;XXX no capability-specific dependencies are foreseen yet
 			lib-version (trim-build-segment version)]
 		  (to-bnd-entry lib-id lib-version os ws arch nl)))
 
@@ -70,7 +70,7 @@
 	based on the given PDE feature.xml file
 	in the given directory."
 	[feature-xml out-dir]
-	(log/debug "parsing" feature-xml)
+	(log/trace "parsing" feature-xml)
 	(let [
 		xml (xml/parse feature-xml)
 		
@@ -82,22 +82,34 @@
 		includes (attrs-of-tag :includes content)
 		plugins (attrs-of-tag :plugin content)
 
-		bnd-lib-id (bnd-lib-id id)
-		out-filename (bnd-lib-filename id version)
-		out-file (java.io.File. (str out-dir "/" bnd-lib-id "/" out-filename))
-
-
 		grouped-includes (group-by capabilities-key includes)
 		grouped-plugins (group-by capabilities-key plugins)
 
-		libs (map to-bnd-lib-entry includes)
-		bundles (map to-bnd-bundle-entry plugins)
-		entries (concat libs bundles)]
+		;all capabilities
+		capabilities (concat (keys grouped-plugins) (keys grouped-includes))
 
-		(.mkdirs (.getParentFile out-file))
+		;BND lib entries (rows), grouped by capability-key
+		grouped-entries (reduce 
+			#(assoc %1 %2 (concat 
+				(map to-bnd-lib-entry (get grouped-includes %2))
+				(map to-bnd-bundle-entry (get grouped-plugins %2)))) 
+			{} 
+			capabilities)]
 
-		(write-lib-file! out-file id version entries)
-		out-file))
+		(map #(let [
+				entries (get grouped-entries %)
+				bnd-lib-id (bnd-lib-id id %)
+				out-filename (bnd-lib-filename id version %)
+				out-file (java.io.File. (str out-dir "/" bnd-lib-id "/" out-filename))
+				 	]
+
+				 	(log/debug "generating" out-filename)
+					(.mkdirs (.getParentFile out-file))
+					(write-lib-file! out-file id version entries)
+					out-file)
+			capabilities)))
+
+		
 
 (defn- find-files [dirpath pattern]
   (filter #(re-matches pattern (.getName %))
