@@ -54,7 +54,7 @@
 		(doall (map #(.write writer (str % "\n")) entries))))
 
 (defn- capability-entry [value]
-	(if (nil? value)
+	(if (or (nil? value) (= "*" value))
 		""
 		(str "-" value)))
 
