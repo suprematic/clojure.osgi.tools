@@ -1,5 +1,6 @@
 (ns clojure.osgi.tools.manifest
   "Tools for working with OSGi bundle manifests"
+  (:gen-class)
   (:require
     [clojure.java.io :as io]
     [clojure.pprint :as pp]
@@ -42,7 +43,10 @@
      m)))
 
 (defn- split-packages [s]
-  (str/split (str/replace s #";x-friends:=\".+\"" "") #","))
+  (-> s
+      (str/replace #";x-friends:=\".+\"" "")
+      (str/replace #";uses:=\".+\"" "")
+      (str/split #",")))
 
 (defn- analyze [attrs]
   (-> {}
@@ -97,3 +101,7 @@
     (write-json! result (file-out "json"))
     (write-plaintext-exports-only! result (file-out "txt"))
     result))
+
+(defn -main [& args]
+  (println "Started with args:" args)
+  (report (first args) (second args)))

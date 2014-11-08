@@ -1,4 +1,4 @@
-(defproject clojure.osgi.tools "0.1.0-SNAPSHOT"
+(defproject clojure.osgi.tools "0.1.1-SNAPSHOT"
             :description "A Clojure library providing utilities for working with miscellaneous OSGi tools (BND, PDE, etc.)."
             :url "https://github.com/suprematic/clojure.osgi.tools"
             :license {:name "Eclipse Public License"
@@ -8,4 +8,8 @@
                            [org.clojure/tools.logging "0.3.1"]
                            [log4j/log4j "1.2.17"]
                            [cheshire "5.3.1"]]
-            :source-paths ["src", "src.example"])
+            :source-paths ["src", "src.example"]
+
+            :main clojure.osgi.tools.manifest
+            :aot [clojure.osgi.tools.manifest]
+            )
